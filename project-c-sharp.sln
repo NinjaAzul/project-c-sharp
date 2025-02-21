@@ -1,0 +1,36 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "project-c-sharp", "project-c-sharp.csproj", "{1647DABB-6D85-43E6-8FFF-D6C01C702E88}"
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1D0A3FFD-308A-4000-BBBC-8F2A218A8630}
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Debug|x64.Build.0 = Debug|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Debug|x86.Build.0 = Debug|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Release|x64.ActiveCfg = Release|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Release|x64.Build.0 = Release|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Release|x86.ActiveCfg = Release|Any CPU
+		{1647DABB-6D85-43E6-8FFF-D6C01C702E88}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

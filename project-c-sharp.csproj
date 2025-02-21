@@ -1,0 +1,81 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Project_C_Sharp</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>  
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
+  </ItemGroup>
+
+<ItemGroup>
+    <EmbeddedResource Include="src\@Shared\I18n\Validation\Messages.pt-BR.resx">
+        <LogicalName>Project_C_Sharp.Shared.I18n.Validation.Messages.pt-BR.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\@Shared\I18n\Validation\Messages.en-US.resx">
+        <LogicalName>Project_C_Sharp.Shared.I18n.Validation.Messages.en-US.resources</LogicalName>
+    </EmbeddedResource>
+</ItemGroup>
+
+<ItemGroup>
+    <EmbeddedResource Include="src\@Shared\I18n\Modules\Users\Messages\Messages.pt-BR.resx">
+        <LogicalName>Project_C_Sharp.Shared.I18n.Modules.Users.Messages.pt-BR.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\@Shared\I18n\Modules\Users\Messages\Messages.en-US.resx">
+        <LogicalName>Project_C_Sharp.Shared.I18n.Modules.Users.Messages.en-US.resources</LogicalName>
+    </EmbeddedResource>
+</ItemGroup>
+
+
+<ItemGroup>
+    <EmbeddedResource Include="src\@Shared\I18n\Modules\Users\Errors\Errors.pt-BR.resx">
+        <LogicalName>Project_C_Sharp.Shared.I18n.Modules.Users.Errors.pt-BR.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\@Shared\I18n\Modules\Users\Errors\Errors.en-US.resx">
+        <LogicalName>Project_C_Sharp.Shared.I18n.Modules.Users.Errors.en-US.resources</LogicalName>
+    </EmbeddedResource>
+</ItemGroup>
+
+<ItemGroup>
+    <EmbeddedResource Include="src\@Shared\I18n\Modules\Auth\Messages\Messages.pt-BR.resx">
+        <LogicalName>Project_C_Sharp.Shared.I18n.Modules.Auth.Messages.pt-BR.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\@Shared\I18n\Modules\Auth\Messages\Messages.en-US.resx">
+        <LogicalName>Project_C_Sharp.Shared.I18n.Modules.Auth.Messages.en-US.resources</LogicalName>
+    </EmbeddedResource>
+</ItemGroup>
+
+<ItemGroup>
+    <EmbeddedResource Include="src\@Shared\I18n\Modules\Auth\Errors\Errors.pt-BR.resx"> 
+        <LogicalName>Project_C_Sharp.Shared.I18n.Modules.Auth.Errors.pt-BR.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\@Shared\I18n\Modules\Auth\Errors\Errors.en-US.resx">
+        <LogicalName>Project_C_Sharp.Shared.I18n.Modules.Auth.Errors.en-US.resources</LogicalName>
+    </EmbeddedResource>
+</ItemGroup>
+
+
+</Project>

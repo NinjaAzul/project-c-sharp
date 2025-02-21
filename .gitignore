@@ -1,0 +1,46 @@
+# Arquivos e diretórios específicos do .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Arquivos de build
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Arquivos do Visual Studio
+.vscode/
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Arquivos de cache e configuração local
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Arquivos de teste
+TestResults/
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Arquivos temporários
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
