@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Project_C_Sharp.Modules.Users.Entities;
 using Project_C_Sharp.Modules.Users.Repositories.Interfaces;
 using Project_C_Sharp.Modules.Users.Services.FindAllUsers.Interfaces;
 using Project_C_Sharp.Modules.UsersBasicInfo.DTOs.Response;

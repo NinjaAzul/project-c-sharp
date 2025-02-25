@@ -28,7 +28,7 @@ public class UpdateUsersService : IUpdateUsersService
             throw new NotFoundException(UsersResource.GetError(UsersErrorsKeys.User_NotFound));
         }
 
-        existingUser.Name = updateUserRequestDto.Name;
+        existingUser.UpdateName(updateUserRequestDto.Name);
 
         var updatedUser = _userRepository.Update(existingUser);
 

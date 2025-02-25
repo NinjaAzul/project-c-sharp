@@ -1,12 +1,9 @@
-using System;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Logging;
 using Project_C_Sharp.Shared.Errors;
 using Project_C_Sharp.Shared.Exceptions;
-using Microsoft.Extensions.Hosting;
+
 
 namespace Project_C_Sharp.Shared.Filters;
 
@@ -29,6 +26,11 @@ public class ApiExceptionFilter : IExceptionFilter
             Message = context.Exception.Message,
             StatusCode = GetStatusCode(context.Exception)
         };
+
+        if (context.Exception is BadRequestException badRequestException && badRequestException.Errors != null)
+        {
+            error.Errors = badRequestException.Errors.Select(e => e.ErrorMessage);
+        }
 
         // Log completo apenas em desenvolvimento
         if (_env.IsDevelopment())

@@ -9,6 +9,9 @@ public static class ValidationConfig
 {
     public static IServiceCollection AddValidation(this IServiceCollection services)
     {
+        // Configura o modo cascade global
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Continue;
+
         services
             .AddFluentValidationAutoValidation()
             .AddFluentValidationClientsideAdapters()

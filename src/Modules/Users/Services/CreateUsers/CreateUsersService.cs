@@ -29,12 +29,13 @@ public class CreateUsersService : ICreateUserService
         }
 
 
-        var user = new User(id: Guid.NewGuid())
-        {
-            Email = createUserRequestDto.Email,
-            Name = createUserRequestDto.Name,
-            Password = BCrypt.Net.BCrypt.HashPassword(createUserRequestDto.Password)
-        };
+        var user = new User(
+            name: createUserRequestDto.Name,
+            email: createUserRequestDto.Email,
+            password: createUserRequestDto.Password
+        );
+
+        user.GeneratePasswordHash();
 
         var createdUser = _userRepository.Add(user);
 
