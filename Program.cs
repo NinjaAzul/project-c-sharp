@@ -8,6 +8,7 @@ using Project_C_Sharp.Shared.Filters;
 using Project_C_Sharp.Shared.Swagger;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using Project_C_Sharp.Infrastructure.DependencyInjection;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,6 +54,7 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 builder.Services
+    .AddInfrastructure(builder.Configuration)
     .AddModules(builder.Configuration);
 
 

@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Project_C_Sharp.Tests.Modules.Users.Services;
 
+[Collection("Find All Users Service Tests")]
 public class FindAllUsersServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;

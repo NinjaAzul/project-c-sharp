@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Project_C_Sharp.Tests.Modules.Users.Services;
 
+[Collection("Update Users Service Tests")]
 public class UpdateUsersServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
@@ -126,14 +127,16 @@ public class UpdateUsersServiceTests
         };
 
         // Act
-        var result = _service.Update(user.Id, updateUserRequestDto);
+        var act = _service.Update(user.Id, updateUserRequestDto);
 
         // Assert
         updatedUser.Should().NotBeNull();
         updatedUser!.Name.Should().Be(novoNome);
         updatedUser.Name.Should().NotBe("Nome Antigo");
-        result.Message.Should().Be(UsersResource.GetMessage(UsersMessagesKeys.User_Updated));
-        result.Id.Should().Be(user.Id);
+        act.Message.Should().Be(UsersResource.GetMessage(UsersMessagesKeys.User_Updated));
+        act.Id.Should().Be(user.Id);
+
+
 
         _userRepositoryMock.Verify(x => x.GetById(user.Id), Times.Once);
         _userRepositoryMock.Verify(x => x.Update(It.IsAny<User>()), Times.Once);

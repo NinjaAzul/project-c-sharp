@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,41 +9,35 @@ namespace Project_C_Sharp.Modules.Users.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private readonly List<User> users;
+    private readonly IDataSource _dataSource;
 
-    public UserRepository()
+    public UserRepository(IDataSource dataSource)
     {
-        users = [];
+        _dataSource = dataSource;
     }
 
     public IEnumerable<User> GetAll()
     {
-        return users;
+        return _dataSource.Users;
     }
 
     public User? GetById(Guid id)
     {
-        return users.FirstOrDefault(u => u.Id == id);
+        return _dataSource.Users.FirstOrDefault(u => u.Id == id);
     }
 
     public User Add(User user)
     {
-        users.Add(user);
+        _dataSource.Users.Add(user);
 
         return user;
     }
 
     public User Update(User user)
     {
-        var index = users.FindIndex(u => u.Id == user.Id);
-        if (index != -1)
-        {
-            users[index] = user;
-        }
-        else
-        {
-            throw new BadRequestException("Usuário não encontrado");
-        }
+        var index = _dataSource.Users.FindIndex(u => u.Id == user.Id);
+
+        _dataSource.Users[index] = user;
 
         return user;
     }
@@ -52,12 +45,12 @@ public class UserRepository : IUserRepository
     public User Delete(Guid id)
     {
         var user = GetById(id)!;
-        users.Remove(user);
+        _dataSource.Users.Remove(user);
         return user;
     }
 
     public User? GetByEmail(string email)
     {
-        return users.FirstOrDefault(u => u.Email == email);
+        return _dataSource.Users.FirstOrDefault(u => u.Email == email);
     }
 }

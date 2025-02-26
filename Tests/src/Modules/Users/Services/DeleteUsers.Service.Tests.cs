@@ -13,6 +13,7 @@ using Project_C_Sharp.Shared.I18n.Modules.Users.Errors.Keys;
 
 namespace Project_C_Sharp.Tests.Modules.Users.Services;
 
+[Collection("Delete Users Service Tests")]
 public class DeleteUsersServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;

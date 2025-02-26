@@ -15,6 +15,7 @@ using Project_C_Sharp.Tests.Modules.Users.Mocks;
 
 namespace Project_C_Sharp.Tests.Modules.Users.Services;
 
+[Collection("Create Users Service Tests")]
 public class CreateUsersServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
