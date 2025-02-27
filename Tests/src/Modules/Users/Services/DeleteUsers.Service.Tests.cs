@@ -10,6 +10,7 @@ using Project_C_Sharp.Shared.I18n.Modules.Users.Messages.Keys;
 using Project_C_Sharp.Tests.Modules.Users.Mocks;
 using Project_C_Sharp.Shared.Exceptions;
 using Project_C_Sharp.Shared.I18n.Modules.Users.Errors.Keys;
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
 
 namespace Project_C_Sharp.Tests.Modules.Users.Services;
 
@@ -17,12 +18,14 @@ namespace Project_C_Sharp.Tests.Modules.Users.Services;
 public class DeleteUsersServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly DeleteUsersService _service;
 
     public DeleteUsersServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-        _service = new DeleteUsersService(_userRepositoryMock.Object);
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _service = new DeleteUsersService(_userRepositoryMock.Object, _unitOfWorkMock.Object);
 
         // Configurar a cultura para pt-BR nos testes
         Thread.CurrentThread.CurrentCulture = new CultureInfo("pt-BR");
@@ -30,21 +33,21 @@ public class DeleteUsersServiceTests
     }
 
     [Fact(DisplayName = "Deve deletar um usuário quando o ID for válido")]
-    public void Delete_WithValidId_ShouldDeleteUser()
+    public async Task Delete_WithValidId_ShouldDeleteUser()
     {
         // Arrange
         var user = UserMocks.Valid.GenerateUser();
 
         _userRepositoryMock
             .Setup(x => x.GetById(user.Id))
-            .Returns(user);
+            .ReturnsAsync(user);
 
         _userRepositoryMock
             .Setup(x => x.Delete(user.Id))
-            .Returns(user);
+            .ReturnsAsync(user);
 
         // Act
-        var result = _service.Delete(user.Id);
+        var result = await _service.Delete(user.Id);
 
         // Assert
         result.Should().NotBeNull();
@@ -56,18 +59,18 @@ public class DeleteUsersServiceTests
     }
 
     [Fact(DisplayName = "Deve lançar exceção quando o usuário não for encontrado")]
-    public void Delete_WithInvalidId_ShouldThrowException()
+    public async Task Delete_WithInvalidId_ShouldThrowException()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns((User?)null);
+        _userRepositoryMock.Setup(x => x.GetById(userId)).ReturnsAsync((User?)null);
 
         // Act
-        var act = () => _service.Delete(userId);
+        var act = async () => await _service.Delete(userId);
 
         // Assert
-        act.Should()
-           .Throw<NotFoundException>()
+        await act.Should()
+           .ThrowAsync<NotFoundException>()
            .WithMessage(UsersResource.GetError(UsersErrorsKeys.User_NotFound));
 
         _userRepositoryMock.Verify(x => x.GetById(userId), Times.Once);

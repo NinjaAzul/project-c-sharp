@@ -7,5 +7,5 @@ namespace Project_C_Sharp.Modules.Auth.Services.Me.Interfaces;
 
 public interface IUserDataService
 {
-    UserBasicInfoResponseDto Me(Guid id);
+    Task<UserBasicInfoResponseDto> Me(Guid id);
 }

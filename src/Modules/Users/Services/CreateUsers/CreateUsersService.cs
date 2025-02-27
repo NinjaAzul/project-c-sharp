@@ -7,6 +7,7 @@ using Project_C_Sharp.Shared.I18n.Modules.Users.Messages.Keys;
 using Project_C_Sharp.Modules.BasicResponseCrud.DTOs.Response;
 using Project_C_Sharp.Shared.Exceptions;
 using Project_C_Sharp.Shared.I18n.Modules.Users.Errors.Keys;
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
 
 namespace Project_C_Sharp.Modules.Users.Services.CreateUsers;
 
@@ -14,14 +15,17 @@ public class CreateUsersService : ICreateUserService
 {
     private readonly IUserRepository _userRepository;
 
-    public CreateUsersService(IUserRepository userRepository)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public CreateUsersService(IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public BasicResponseCrudDto Create(CreateUserRequestDto createUserRequestDto)
+    public async Task<BasicResponseCrudDto> Create(CreateUserRequestDto createUserRequestDto)
     {
-        var userAlreadyExists = _userRepository.GetByEmail(createUserRequestDto.Email);
+        var userAlreadyExists = await _userRepository.GetByEmail(createUserRequestDto.Email);
 
         if (userAlreadyExists != null)
         {
@@ -29,15 +33,14 @@ public class CreateUsersService : ICreateUserService
         }
 
 
-        var user = new User(
-            name: createUserRequestDto.Name,
-            email: createUserRequestDto.Email,
-            password: createUserRequestDto.Password
+        var user = User.Create(
+            createUserRequestDto,
+            new CreateUserRequestValidator()
         );
 
-        user.GeneratePasswordHash();
+        var createdUser = await _userRepository.Add(user);
 
-        var createdUser = _userRepository.Add(user);
+        await _unitOfWork.CompleteAsync();
 
         return new BasicResponseCrudDto { Message = UsersResource.GetMessage(UsersMessagesKeys.User_Created), Id = createdUser.Id };
     }

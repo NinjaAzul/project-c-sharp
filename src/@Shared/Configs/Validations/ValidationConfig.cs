@@ -13,7 +13,10 @@ public static class ValidationConfig
         ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Continue;
 
         services
-            .AddFluentValidationAutoValidation()
+            .AddFluentValidationAutoValidation(options =>
+            {
+                options.DisableDataAnnotationsValidation = true;
+            })
             .AddFluentValidationClientsideAdapters()
             .AddValidatorsFromAssemblyContaining<AssemblyMarker>();
 

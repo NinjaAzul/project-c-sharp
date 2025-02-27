@@ -6,5 +6,5 @@ namespace Project_C_Sharp.Modules.Users.Services.FindByIdUsers.Interfaces;
 
 public interface IFindByIdUsersService
 {
-    UserBasicInfoResponseDto FindById(Guid id);
+    Task<UserBasicInfoResponseDto> FindById(Guid id);
 }

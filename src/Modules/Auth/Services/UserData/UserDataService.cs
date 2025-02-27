@@ -1,4 +1,5 @@
 
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
 using Project_C_Sharp.Modules.Auth.Services.Me.Interfaces;
 
 using Project_C_Sharp.Modules.Users.Repositories.Interfaces;
@@ -13,20 +14,23 @@ namespace Project_C_Sharp.Modules.Auth.Services.UserData;
 public class UserDataService : IUserDataService
 {
     private readonly IUserRepository _userRepository;
-
-    public UserDataService(IUserRepository userRepository)
+    private readonly IUnitOfWork _unitOfWork;
+    public UserDataService(IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public UserBasicInfoResponseDto Me(Guid id)
+    public async Task<UserBasicInfoResponseDto> Me(Guid id)
     {
-        var user = _userRepository.GetById(id);
+        var user = await _userRepository.GetById(id);
 
         if (user == null)
         {
             throw new NotFoundException(UsersResource.GetError(UsersErrorsKeys.User_NotFound));
         }
+
+        await _unitOfWork.CompleteAsync();
 
         return new UserBasicInfoResponseDto
         {

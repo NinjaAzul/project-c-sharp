@@ -1,3 +1,4 @@
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
 using Project_C_Sharp.Modules.Users.Repositories.Interfaces;
 using Project_C_Sharp.Modules.Users.Services.FindByIdUsers.Interfaces;
 using Project_C_Sharp.Modules.UsersBasicInfo.DTOs.Response;
@@ -11,19 +12,24 @@ public class FindByIdUsersService : IFindByIdUsersService
 {
     private readonly IUserRepository _userRepository;
 
-    public FindByIdUsersService(IUserRepository userRepository)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public FindByIdUsersService(IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
-        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public UserBasicInfoResponseDto FindById(Guid id)
+    public async Task<UserBasicInfoResponseDto> FindById(Guid id)
     {
-        var user = _userRepository.GetById(id);
+        var user = await _userRepository.GetById(id);
 
         if (user is null)
         {
             throw new NotFoundException(UsersResource.GetError(UsersErrorsKeys.User_NotFound));
         }
+
+        await _unitOfWork.CompleteAsync();
 
         return new UserBasicInfoResponseDto()
         {

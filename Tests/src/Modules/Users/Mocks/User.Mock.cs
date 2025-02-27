@@ -1,6 +1,7 @@
 using Bogus;
 using Project_C_Sharp.Modules.CreateUser.Dto.Request;
 using Project_C_Sharp.Modules.Users.Entities;
+using Project_C_Sharp.Modules.UsersBasicInfo.DTOs.Response;
 using Project_C_Sharp.Shared.Exceptions;
 
 namespace Project_C_Sharp.Tests.Modules.Users.Mocks;
@@ -10,11 +11,15 @@ public static class UserMocks
 
 
     private static readonly Faker<User> UserFaker = new Faker<User>("pt_BR")
-        .CustomInstantiator(f => new User(
-            name: RemoveAccents(f.Name.FirstName() + " " + f.Name.LastName()),
-            email: f.Internet.Email(),
-            password: $"Password{f.Random.Number(100, 999)}"
-        ));
+       .CustomInstantiator(f => User.Create(
+           new CreateUserRequestDto
+           {
+               Name = RemoveAccents(f.Name.FirstName() + " " + f.Name.LastName()),
+               Email = f.Internet.Email(),
+               Password = $"Password{f.Random.Number(100, 999)}"
+           },
+           new CreateUserRequestValidator()
+       ));
 
     private static readonly string[] ValidNames =
     [
@@ -51,6 +56,13 @@ public static class UserMocks
                 throw;
             }
         }
+
+        public static List<UserBasicInfoResponseDto> GenerateBasicResponseCrudDto(int count = 1) => UserFaker.Generate(count).Select(user => new UserBasicInfoResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email
+        }).ToList();
         public static List<User> GenerateUsers(int count = 3) => UserFaker.Generate(count);
         public static CreateUserRequestDto GenerateCreateDto()
         {

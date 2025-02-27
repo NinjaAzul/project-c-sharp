@@ -1,23 +1,29 @@
 using System.Globalization;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Localization;
 using Project_C_Sharp.Modules.DependencyInjection;
-using Project_C_Sharp.Shared.Configs.Validations.AssemblyMaker;
 using Project_C_Sharp.Shared.Filters;
 using Project_C_Sharp.Shared.Swagger;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using Project_C_Sharp.Infrastructure.DependencyInjection;
+using System.Text.Encodings.Web;
+using Project_C_Sharp.Shared.Configuration.Validations;
 
 
+// 1. Primeiro configure os serviços essenciais
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Services.AddRouting(options =>
 {
     options.LowercaseUrls = true;
 });
 
+// 2. Configure o DbContext e infraestrutura ANTES dos módulos
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// 3. Configure os módulos DEPOIS da infraestrutura
+builder.Services.AddModules(builder.Configuration);
+
+// 4. Configure o CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -30,6 +36,7 @@ builder.Services.AddCors(options =>
         });
 });
 
+// 5. Configure a localização
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
     var supportedCultures = new[]
@@ -53,20 +60,17 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     }));
 });
 
-builder.Services
-    .AddInfrastructure(builder.Configuration)
-    .AddModules(builder.Configuration);
-
-
+// 6. Configure os Controllers e filtros
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ApiExceptionFilter>();
+}).AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
 });
 
-builder.Services
-    .AddFluentValidationAutoValidation()
-    .AddFluentValidationClientsideAdapters()
-    .AddValidatorsFromAssemblyContaining<AssemblyMarker>();
+// 7. Configure a validação
+builder.Services.AddValidation();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

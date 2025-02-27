@@ -4,5 +4,5 @@ namespace Project_C_Sharp.Modules.Users.Services.DeleteUsers.Interfaces;
 
 public interface IDeleteUsersService
 {
-    BasicResponseCrudDto Delete(Guid id);
+    Task<BasicResponseCrudDto> Delete(Guid id);
 }

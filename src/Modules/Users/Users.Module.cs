@@ -14,6 +14,7 @@ using Project_C_Sharp.Modules.Users.Services.UpdateUsers;
 using Project_C_Sharp.Modules.Users.Services.UpdateUsers.Interfaces;
 using Project_C_Sharp.Modules.CreateUser.Dto.Request;
 using Project_C_Sharp.Modules.UpdateUser.Dto.Request;
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
 
 
 namespace Project_C_Sharp.Modules.Users;
@@ -24,7 +25,8 @@ public static class UserModuleExtensions
      this IServiceCollection services)
     {
         // Repositories
-        services.AddSingleton<IUserRepository, UserRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();  // AQUI: Mudando de Singleton para Scoped
+
         // Services
         services.AddScoped<IFindAllUsersService, FindAllUsersService>();
         services.AddScoped<IFindByIdUsersService, FindByIdUsersService>();
@@ -33,9 +35,11 @@ public static class UserModuleExtensions
         services.AddScoped<IDeleteUsersService, DeleteUsersService>();
 
         // Validators
-        services.AddScoped<IValidator<CreateUserRequestDto>, CreateUserRequestDtoValidator>();
+        services.AddScoped<IValidator<CreateUserRequestDto>, CreateUserRequestValidator>();
         services.AddScoped<IValidator<UpdateUserRequestDto>, UpdateUserRequestDtoValidator>();
 
+        // Unit of Work
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

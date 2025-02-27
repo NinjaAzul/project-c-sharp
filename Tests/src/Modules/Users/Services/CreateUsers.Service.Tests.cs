@@ -12,6 +12,11 @@ using System.Globalization;
 using Project_C_Sharp.Shared.Resources.Validation;
 using Project_C_Sharp.Shared.I18n.Validation.Keys;
 using Project_C_Sharp.Tests.Modules.Users.Mocks;
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
+using BCrypt.Net;
+using System.Text.Json;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Project_C_Sharp.Tests.Modules.Users.Services;
 
@@ -19,12 +24,14 @@ namespace Project_C_Sharp.Tests.Modules.Users.Services;
 public class CreateUsersServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly CreateUsersService _service;
 
     public CreateUsersServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-        _service = new CreateUsersService(_userRepositoryMock.Object);
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _service = new CreateUsersService(_userRepositoryMock.Object, _unitOfWorkMock.Object);
 
         // Configurar a cultura para pt-BR nos testes
         Thread.CurrentThread.CurrentCulture = new CultureInfo("pt-BR");
@@ -32,7 +39,7 @@ public class CreateUsersServiceTests
     }
 
     [Fact(DisplayName = "Deve criar um usuário quando os dados forem válidos")]
-    public void Create_WithValidData_ShouldCreateUser()
+    public async Task Create_WithValidData_ShouldCreateUser()
     {
         // Arrange
         var createUserDto = UserMocks.Valid.GenerateCreateDto();
@@ -40,14 +47,14 @@ public class CreateUsersServiceTests
 
         _userRepositoryMock
             .Setup(x => x.GetByEmail(createUserDto.Email))
-            .Returns((User?)null);
+            .ReturnsAsync((User?)null);
 
         _userRepositoryMock
             .Setup(x => x.Add(It.IsAny<User>()))
-            .Returns(expectedUser);
+            .ReturnsAsync(expectedUser);
 
         // Act
-        var result = _service.Create(createUserDto);
+        var result = await _service.Create(createUserDto);
 
         // Assert
         result.Should().NotBeNull();
@@ -58,29 +65,28 @@ public class CreateUsersServiceTests
     }
 
     [Fact(DisplayName = "Deve lançar exceção quando email já existir")]
-    public void Create_WithExistingEmail_ShouldThrowException()
+    public async Task Create_WithExistingEmail_ShouldThrowException()
     {
         // Arrange
         var createUserDto = UserMocks.Valid.GenerateCreateDto();
         var existingUser = UserMocks.Valid.GenerateUser();
 
-        _userRepositoryMock.Setup(x => x.Add(It.IsAny<User>())).Returns(existingUser);
+        _userRepositoryMock.Setup(x => x.Add(It.IsAny<User>())).ReturnsAsync(existingUser);
 
         _userRepositoryMock
             .Setup(x => x.GetByEmail(createUserDto.Email))
-            .Returns(existingUser);
+            .ReturnsAsync(existingUser);
 
         // Act
         var act = () => _service.Create(createUserDto);
 
         // Assert
-        act.Should()
-           .Throw<BadRequestException>()
+        await act.Should().ThrowAsync<BadRequestException>()
            .WithMessage(UsersResource.GetError(UsersErrorsKeys.Email_Already_Exists));
     }
 
     [Fact(DisplayName = "Deve lançar exceção quando os dados do usuário não forem válidos")]
-    public void Create_WithInvalidUserData_ShouldThrowException()
+    public async Task Create_WithInvalidUserData_ShouldThrowException()
     {
         // Arrange
         var createUserDto = new CreateUserRequestDto
@@ -91,7 +97,7 @@ public class CreateUsersServiceTests
         };
 
         // Act & Assert
-        var exception = Assert.Throws<BadRequestException>(() => _service.Create(createUserDto));
+        var exception = await Assert.ThrowsAsync<BadRequestException>(() => _service.Create(createUserDto));
 
         var errors = exception.Errors;
 
@@ -112,32 +118,45 @@ public class CreateUsersServiceTests
     }
 
     [Fact(DisplayName = "Deve gerar hash da senha quando os dados do usuário forem válidos")]
-    public void Create_WithValidData_ShouldGeneratePasswordHash()
+    public async Task Create_WithValidData_ShouldGeneratePasswordHash()
     {
         // Arrange
         var createUserDto = UserMocks.Valid.GenerateCreateDto();
-        User? savedUser = null;
+        var usersInMemory = new List<User>();
+
+        Console.WriteLine(JsonSerializer.Serialize(createUserDto));
 
         _userRepositoryMock
             .Setup(x => x.GetByEmail(createUserDto.Email))
-            .Returns((User?)null);
+            .ReturnsAsync((User?)null);
 
         _userRepositoryMock
             .Setup(x => x.Add(It.IsAny<User>()))
-            .Callback<User>(user => savedUser = user)
-            .Returns((User u) => u);
+            .Callback<User>(user => usersInMemory.Add(user))
+            .ReturnsAsync((User u) => u);
+
+        _userRepositoryMock
+            .Setup(x => x.GetById(It.IsAny<Guid>()))
+            .ReturnsAsync((Guid id) => usersInMemory.FirstOrDefault(u => u.Id == id));
 
         // Act
-        var result = _service.Create(createUserDto);
+        var result = await _service.Create(createUserDto);
+
+        // Simule a recuperação do usuário diretamente do repositório
+        var savedUser = usersInMemory.FirstOrDefault(u => u.Id == result.Id);
 
         // Assert
-        savedUser.Should().NotBeNull();
-        savedUser!.Password.Should().NotBe(createUserDto.Password);
-        savedUser.Password.Should().NotBeNullOrEmpty();
-        BCrypt.Net.BCrypt.Verify(createUserDto.Password, savedUser.Password).Should().BeTrue();
+        result.Should().NotBeNull();
+        result.Message.Should().NotBeNullOrEmpty();
+        result.Id.Should().NotBeEmpty();
 
         _userRepositoryMock.Verify(x => x.Add(It.IsAny<User>()), Times.Once);
         _userRepositoryMock.Verify(x => x.GetByEmail(createUserDto.Email), Times.Once);
+
+        // Verifique o hash da senha
+        savedUser.Should().NotBeNull();
+        savedUser!.Password.Should().NotBe(createUserDto.Password);
+        BCrypt.Net.BCrypt.Verify(createUserDto.Password, savedUser.Password).Should().BeTrue();
     }
 
 }

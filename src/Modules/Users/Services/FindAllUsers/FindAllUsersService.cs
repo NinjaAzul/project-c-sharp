@@ -1,3 +1,4 @@
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
 using Project_C_Sharp.Modules.Users.Repositories.Interfaces;
 using Project_C_Sharp.Modules.Users.Services.FindAllUsers.Interfaces;
 using Project_C_Sharp.Modules.UsersBasicInfo.DTOs.Response;
@@ -8,14 +9,19 @@ public class FindAllUsersService : IFindAllUsersService
 {
     private readonly IUserRepository _userRepository;
 
-    public FindAllUsersService(IUserRepository userRepository)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public FindAllUsersService(IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public IEnumerable<UserBasicInfoResponseDto> FindAll()
+    public async Task<IEnumerable<UserBasicInfoResponseDto>> FindAll()
     {
-        var users = _userRepository.GetAll();
+        var users = await _userRepository.GetAll();
+
+        await _unitOfWork.CompleteAsync();
 
         return users.Select(user => new UserBasicInfoResponseDto
         {

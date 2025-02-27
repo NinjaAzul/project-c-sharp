@@ -5,5 +5,5 @@ namespace Project_C_Sharp.Modules.Users.Services.UpdateUsers.Interfaces;
 
 public interface IUpdateUsersService
 {
-    BasicResponseCrudDto Update(Guid id, UpdateUserRequestDto updateUserRequestDto);
+    Task<BasicResponseCrudDto> Update(Guid id, UpdateUserRequestDto updateUserRequestDto);
 }

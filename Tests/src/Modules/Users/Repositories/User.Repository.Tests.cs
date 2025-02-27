@@ -1,52 +1,42 @@
-using Project_C_Sharp.Infra.DataBaseInMemory;
 using Project_C_Sharp.Modules.Users.Entities;
-using Project_C_Sharp.Modules.Users.Repositories;
 using Project_C_Sharp.Tests.Modules.Users.Mocks;
 using Xunit;
 using Moq;
-
+using Microsoft.EntityFrameworkCore;
+using Project_C_Sharp.Modules.Users.Repositories;
+using System.Text.Json;
 
 namespace Tests.Modules.Users.Repositories;
 
-public abstract class UserRepositoryTestBase
+public abstract class UserRepositoryTestBase : DataBaseInMemory
 {
-    protected readonly Mock<IDataSource> _dataSourceMock;
-    protected readonly List<User> _usersList;
+
+    protected readonly Mock<DbSet<User>> _usersDbSetMock;
     protected readonly UserRepository _repository;
 
     protected UserRepositoryTestBase()
     {
-        _usersList = new List<User>();
-        _dataSourceMock = new Mock<IDataSource>();
-        _dataSourceMock.Setup(x => x.Users).Returns(_usersList);
-        _repository = new UserRepository(_dataSourceMock.Object);
-    }
+        var context = CreateInMemoryDbContext();
+        _usersDbSetMock = new Mock<DbSet<User>>();
 
-    // Métodos auxiliares que podem ser usados por todos os testes
-    protected void AddUserToList(User user)
-    {
-        _usersList.Add(user);
-    }
-
-    protected void AddUsersToList(IEnumerable<User> users)
-    {
-        _usersList.AddRange(users);
+        _repository = new UserRepository(context);
     }
 }
 
 [Collection("User Repository Tests")]
-public class UserRepositoryTests
+public class UserRepositoryTests : UserRepositoryTestBase
 {
     public class AddUserTests : UserRepositoryTestBase
     {
         [Fact(DisplayName = "Deve adicionar um usuário com sucesso")]
-        public void Should_Add_User_Successfully()
+        public async Task Should_Add_User_Successfully()
         {
             // Arrange
             var user = UserMocks.Valid.GenerateUser();
 
+
             // Act
-            var userAdded = _repository.Add(user);
+            var userAdded = await _repository.Add(user);
 
             // Assert
             Assert.NotNull(userAdded);
@@ -54,21 +44,21 @@ public class UserRepositoryTests
             Assert.Equal(user.Email, userAdded.Email);
             Assert.NotEqual(Guid.Empty, userAdded.Id);
             Assert.Equal(user.Password, userAdded.Password);
-            Assert.Single(_usersList);
         }
     }
 
     public class GetByIdTests : UserRepositoryTestBase
     {
         [Fact(DisplayName = "Deve retornar um usuário pelo id")]
-        public void Should_Get_User_ById_Successfully()
+        public async Task Should_Get_User_ById_Successfully()
         {
             // Arrange
             var user = UserMocks.Valid.GenerateUser();
-            AddUserToList(user);
+
+            await _repository.Add(user);
 
             // Act
-            var userById = _repository.GetById(user.Id);
+            var userById = await _repository.GetById(user.Id);
 
             // Assert
             Assert.NotNull(userById);
@@ -77,10 +67,15 @@ public class UserRepositoryTests
         }
 
         [Fact(DisplayName = "Deve retornar null se o usuário não existir")]
-        public void Should_Return_Null_If_User_Does_Not_Exist()
+        public async Task Should_Return_Null_If_User_Does_Not_Exist()
         {
+            // Arrange
+            var user = UserMocks.Valid.GenerateUser();
+
+            await _repository.Add(user);
+
             // Act
-            var userById = _repository.GetById(Guid.NewGuid());
+            var userById = await _repository.GetById(Guid.NewGuid());
 
             // Assert
             Assert.Null(userById);
@@ -90,14 +85,18 @@ public class UserRepositoryTests
     public class GetAllTests : UserRepositoryTestBase
     {
         [Fact(DisplayName = "Deve retornar todos os usuários")]
-        public void Should_Get_All_Users_Successfully()
+        public async Task Should_Get_All_Users_Successfully()
         {
             // Arrange
             var users = UserMocks.Valid.GenerateUsers(10);
-            AddUsersToList(users);
+
+            foreach (var user in users)
+            {
+                await _repository.Add(user);
+            }
 
             // Act
-            var usersResult = _repository.GetAll();
+            var usersResult = await _repository.GetAll();
 
             // Assert
             Assert.NotNull(usersResult);
@@ -106,10 +105,11 @@ public class UserRepositoryTests
         }
 
         [Fact(DisplayName = "Deve retornar uma lista vazia se não houver usuários")]
-        public void Should_Return_Empty_List_If_No_Users()
+        public async Task Should_Return_Empty_List_If_No_Users()
         {
-            // Act
-            var usersResult = _repository.GetAll();
+
+            // Act 
+            var usersResult = await _repository.GetAll();
 
             // Assert
             Assert.NotNull(usersResult);
@@ -120,18 +120,19 @@ public class UserRepositoryTests
     public class UpdateTests : UserRepositoryTestBase
     {
         [Fact(DisplayName = "Deve atualizar um usuário com sucesso")]
-        public void Should_Update_User_Successfully()
+        public async Task Should_Update_User_Successfully()
         {
             // Arrange
             var user = UserMocks.Valid.GenerateUser();
-            AddUserToList(user);
+
+            var createdUser = await _repository.Add(user);
 
             var expectedName = "Nome Atualizado";
             var originalName = user.Name;
-            user.UpdateName(expectedName);
+            createdUser.UpdateName(expectedName);
 
             // Act
-            var userUpdated = _repository.Update(user);
+            var userUpdated = await _repository.Update(createdUser);
 
             // Assert
             Assert.NotNull(userUpdated);
@@ -146,19 +147,19 @@ public class UserRepositoryTests
     public class DeleteTests : UserRepositoryTestBase
     {
         [Fact(DisplayName = "Deve deletar um usuário com sucesso")]
-        public void Should_Delete_User_Successfully()
+        public async Task Should_Delete_User_Successfully()
         {
             // Arrange
             var user = UserMocks.Valid.GenerateUser();
-            AddUserToList(user);
+
+            await _repository.Add(user);
 
             // Act
-            var userDeleted = _repository.Delete(user.Id);
+            var userDeleted = await _repository.Delete(user.Id);
 
             // Assert
             Assert.NotNull(userDeleted);
-            Assert.Empty(_usersList);
-            var searchResult = _repository.GetById(user.Id);
+            var searchResult = await _repository.GetById(user.Id);
             Assert.Null(searchResult);
         }
     }
@@ -166,14 +167,15 @@ public class UserRepositoryTests
     public class GetByEmailTests : UserRepositoryTestBase
     {
         [Fact(DisplayName = "Deve retornar um usuário pelo email")]
-        public void Should_Get_User_By_Email_Successfully()
+        public async Task Should_Get_User_By_Email_Successfully()
         {
             // Arrange   
             var user = UserMocks.Valid.GenerateUser();
-            AddUserToList(user);
+
+            await _repository.Add(user);
 
             // Act
-            var userByEmail = _repository.GetByEmail(user.Email);
+            var userByEmail = await _repository.GetByEmail(user.Email);
 
             // Assert
             Assert.NotNull(userByEmail);
@@ -182,10 +184,10 @@ public class UserRepositoryTests
         }
 
         [Fact(DisplayName = "Deve retornar null se o email não fornecido for null")]
-        public void Should_Return_Null_If_Email_Is_Null()
+        public async Task Should_Return_Null_If_Email_Is_Null()
         {
             // Act
-            var userByEmail = _repository.GetByEmail(string.Empty);
+            var userByEmail = await _repository.GetByEmail(string.Empty);
 
             // Assert
             Assert.Null(userByEmail);

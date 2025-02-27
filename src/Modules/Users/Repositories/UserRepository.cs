@@ -1,56 +1,57 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Project_C_Sharp.Infra.DataBase.EntityFrameworkCore;
 using Project_C_Sharp.Modules.Users.Entities;
 using Project_C_Sharp.Modules.Users.Repositories.Interfaces;
-using Project_C_Sharp.Shared.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
-namespace Project_C_Sharp.Modules.Users.Repositories;
-
-public class UserRepository : IUserRepository
+namespace Project_C_Sharp.Modules.Users.Repositories
 {
-    private readonly IDataSource _dataSource;
-
-    public UserRepository(IDataSource dataSource)
+    public class UserRepository : IUserRepository
     {
-        _dataSource = dataSource;
-    }
+        private readonly ApplicationDbContext _context;
 
-    public IEnumerable<User> GetAll()
-    {
-        return _dataSource.Users;
-    }
+        public UserRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-    public User? GetById(Guid id)
-    {
-        return _dataSource.Users.FirstOrDefault(u => u.Id == id);
-    }
+        public async Task<User> Add(User user)
+        {
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+            return user;
+        }
 
-    public User Add(User user)
-    {
-        _dataSource.Users.Add(user);
+        public async Task<User?> GetById(Guid id)
+        {
+            return await _context.Users.FindAsync(id);
+        }
 
-        return user;
-    }
+        public async Task<IEnumerable<User>> GetAll()
+        {
+            return await _context.Users.ToListAsync();
+        }
 
-    public User Update(User user)
-    {
-        var index = _dataSource.Users.FindIndex(u => u.Id == user.Id);
+        public async Task<User?> GetByEmail(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
 
-        _dataSource.Users[index] = user;
+        public async Task<User> Update(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return user;
+        }
 
-        return user;
-    }
-
-    public User Delete(Guid id)
-    {
-        var user = GetById(id)!;
-        _dataSource.Users.Remove(user);
-        return user;
-    }
-
-    public User? GetByEmail(string email)
-    {
-        return _dataSource.Users.FirstOrDefault(u => u.Email == email);
+        public async Task<User?> Delete(Guid id)
+        {
+            var user = await GetById(id);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+            return user;
+        }
     }
 }

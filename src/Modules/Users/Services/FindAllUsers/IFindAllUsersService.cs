@@ -5,5 +5,5 @@ namespace Project_C_Sharp.Modules.Users.Services.FindAllUsers.Interfaces;
 
 public interface IFindAllUsersService
 {
-    IEnumerable<UserBasicInfoResponseDto> FindAll();
+    Task<IEnumerable<UserBasicInfoResponseDto>> FindAll();
 }

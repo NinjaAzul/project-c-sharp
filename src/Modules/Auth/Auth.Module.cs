@@ -23,7 +23,7 @@ public static class AuthModuleExtensions
 
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
         // Repositories
-        services.AddSingleton<IUserRepository, UserRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         // Services
         services.AddScoped<ILoginUsersService, LoginUsersService>();
         services.AddScoped<ITokenService, TokenService>();

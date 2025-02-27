@@ -7,6 +7,7 @@ using Project_C_Sharp.Shared.I18n.Modules.Users.Errors.Keys;
 using Project_C_Sharp.Shared.Resources.Users;
 using Project_C_Sharp.Modules.BasicResponseCrud.DTOs.Response;
 using Project_C_Sharp.Shared.I18n.Modules.Users.Messages.Keys;
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
 
 namespace Project_C_Sharp.Modules.Users.Services.UpdateUsers;
 
@@ -14,14 +15,17 @@ public class UpdateUsersService : IUpdateUsersService
 {
     private readonly IUserRepository _userRepository;
 
-    public UpdateUsersService(IUserRepository userRepository)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public UpdateUsersService(IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public BasicResponseCrudDto Update(Guid id, UpdateUserRequestDto updateUserRequestDto)
+    public async Task<BasicResponseCrudDto> Update(Guid id, UpdateUserRequestDto updateUserRequestDto)
     {
-        var existingUser = _userRepository.GetById(id);
+        var existingUser = await _userRepository.GetById(id);
 
         if (existingUser is null)
         {
@@ -30,7 +34,9 @@ public class UpdateUsersService : IUpdateUsersService
 
         existingUser.UpdateName(updateUserRequestDto.Name);
 
-        var updatedUser = _userRepository.Update(existingUser);
+        var updatedUser = await _userRepository.Update(existingUser);
+
+        await _unitOfWork.CompleteAsync();
 
         return new BasicResponseCrudDto { Message = UsersResource.GetMessage(UsersMessagesKeys.User_Updated), Id = updatedUser.Id };
     }

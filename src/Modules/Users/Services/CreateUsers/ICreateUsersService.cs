@@ -5,5 +5,5 @@ namespace Project_C_Sharp.Modules.Users.Services.CreateUsers.Interfaces;
 
 public interface ICreateUserService
 {
-    BasicResponseCrudDto Create(CreateUserRequestDto createUserRequestDto);
+    Task<BasicResponseCrudDto> Create(CreateUserRequestDto createUserRequestDto);
 }

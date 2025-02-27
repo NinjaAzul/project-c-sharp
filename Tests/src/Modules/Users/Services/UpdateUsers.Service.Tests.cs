@@ -1,6 +1,8 @@
 using System.Globalization;
 using FluentAssertions;
 using Moq;
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
+using Project_C_Sharp.Modules.CreateUser.Dto.Request;
 using Project_C_Sharp.Modules.UpdateUser.Dto.Request;
 using Project_C_Sharp.Modules.Users.Entities;
 using Project_C_Sharp.Modules.Users.Repositories.Interfaces;
@@ -18,13 +20,14 @@ namespace Project_C_Sharp.Tests.Modules.Users.Services;
 public class UpdateUsersServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly UpdateUsersService _service;
 
     public UpdateUsersServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-
-        _service = new UpdateUsersService(_userRepositoryMock.Object);
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _service = new UpdateUsersService(_userRepositoryMock.Object, _unitOfWorkMock.Object);
 
         Thread.CurrentThread.CurrentCulture = new CultureInfo("pt-BR");
         Thread.CurrentThread.CurrentUICulture = new CultureInfo("pt-BR");
@@ -32,29 +35,33 @@ public class UpdateUsersServiceTests
 
 
     [Fact(DisplayName = "Deve atualizar um usuário quando o ID for válido")]
-    public void Update_WithValidId_ShouldUpdateUser()
+    public async Task Update_WithValidId_ShouldUpdateUser()
     {
         // Arrange
-        var user = new User(
-            name: UserMocks.Valid.Name,
-            email: UserMocks.Valid.Email,
-            password: UserMocks.Valid.Password
+        var user = User.Create(
+            new CreateUserRequestDto
+            {
+                Name = UserMocks.Valid.Name,
+                Email = UserMocks.Valid.Email,
+                Password = UserMocks.Valid.Password
+            },
+            new CreateUserRequestValidator()
         );
 
         // Simula o cadastro do usuário
         var createdUser = _userRepositoryMock
             .Setup(x => x.Add(It.IsAny<User>()))
-            .Returns(user);
+            .ReturnsAsync(user);
 
         // Configura o GetById para retornar o usuário criado
         _userRepositoryMock
             .Setup(x => x.GetById(user.Id))
-            .Returns(user);
+            .ReturnsAsync(user);
 
         // Configura o Update para retornar o usuário atualizado
         _userRepositoryMock
             .Setup(x => x.Update(user))
-            .Returns(user);
+            .ReturnsAsync(user);
 
         // Cria o DTO de atualização
         var updateUserRequestDto = new UpdateUserRequestDto
@@ -63,19 +70,19 @@ public class UpdateUsersServiceTests
         };
 
         // Act
-        var act = _service.Update(user.Id, updateUserRequestDto);
+        var result = await _service.Update(user.Id, updateUserRequestDto);
 
         // Assert
-        act.Should().NotBeNull();
-        act.Message.Should().Be(UsersResource.GetMessage(UsersMessagesKeys.User_Updated));
-        act.Id.Should().Be(user.Id);
+        result.Should().NotBeNull();
+        result.Message.Should().Be(UsersResource.GetMessage(UsersMessagesKeys.User_Updated));
+        result.Id.Should().Be(user.Id);
 
         _userRepositoryMock.Verify(x => x.GetById(user.Id), Times.Once);
         _userRepositoryMock.Verify(x => x.Update(user), Times.Once);
     }
 
     [Fact(DisplayName = "Deve lançar exceção quando o usuário não for encontrado")]
-    public void Update_WithInvalidId_ShouldThrowException()
+    public async Task Update_WithInvalidId_ShouldThrowException()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -85,13 +92,14 @@ public class UpdateUsersServiceTests
             Name = UserMocks.Valid.Name,
         };
 
-        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns((User?)null);
+        _userRepositoryMock.Setup(x => x.GetById(userId)).ReturnsAsync((User?)null);
 
         // Act
-        var act = () => _service.Update(userId, updateUserRequestDto);
+        var act = async () => await _service.Update(userId, updateUserRequestDto);
 
         // Assert
-        act.Should().Throw<NotFoundException>()
+        await act.Should()
+           .ThrowAsync<NotFoundException>()
            .WithMessage(UsersResource.GetError(UsersErrorsKeys.User_NotFound));
 
         _userRepositoryMock.Verify(x => x.GetById(userId), Times.Once);
@@ -99,14 +107,10 @@ public class UpdateUsersServiceTests
     }
 
     [Fact(DisplayName = "Deve atualizar o nome do usuário corretamente")]
-    public void Update_ShouldUpdateUserName()
+    public async Task Update_ShouldUpdateUserName()
     {
         // Arrange
-        var user = new User(
-            name: "Nome Antigo",
-            email: UserMocks.Valid.Email,
-            password: UserMocks.Valid.Password
-        );
+        var user = UserMocks.Valid.GenerateUser();
 
         var novoNome = "Nome Novo";
 
@@ -114,12 +118,12 @@ public class UpdateUsersServiceTests
 
         _userRepositoryMock
             .Setup(x => x.GetById(user.Id))
-            .Returns(user);
+            .ReturnsAsync(user);
 
         _userRepositoryMock
             .Setup(x => x.Update(It.IsAny<User>()))
             .Callback<User>(u => updatedUser = u)
-            .Returns((User u) => u);
+            .ReturnsAsync((User u) => u);
 
         var updateUserRequestDto = new UpdateUserRequestDto
         {
@@ -127,14 +131,14 @@ public class UpdateUsersServiceTests
         };
 
         // Act
-        var act = _service.Update(user.Id, updateUserRequestDto);
+        var result = await _service.Update(user.Id, updateUserRequestDto);
 
         // Assert
         updatedUser.Should().NotBeNull();
         updatedUser!.Name.Should().Be(novoNome);
         updatedUser.Name.Should().NotBe("Nome Antigo");
-        act.Message.Should().Be(UsersResource.GetMessage(UsersMessagesKeys.User_Updated));
-        act.Id.Should().Be(user.Id);
+        result.Message.Should().Be(UsersResource.GetMessage(UsersMessagesKeys.User_Updated));
+        result.Id.Should().Be(user.Id);
 
 
 

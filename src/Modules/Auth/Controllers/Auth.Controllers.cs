@@ -21,9 +21,9 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-    public IActionResult Login([FromServices] ILoginUsersService loginUsersService, [FromBody] LoginUsersRequestDto loginUsersRequestDto)
+    public async Task<IActionResult> Login([FromServices] ILoginUsersService loginUsersService, [FromBody] LoginUsersRequestDto loginUsersRequestDto)
     {
-        var response = loginUsersService.Login(loginUsersRequestDto);
+        var response = await loginUsersService.Login(loginUsersRequestDto);
         return Ok(response);
     }
 
@@ -31,9 +31,10 @@ public class AuthController : ControllerBase
     [AuthGuard]
     [ProducesResponseType(typeof(UserBasicInfoResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-    public IActionResult Me([FromServices] IUserDataService userDataService)
+    public async Task<IActionResult> Me([FromServices] IUserDataService userDataService)
     {
         var userId = HttpContext.GetUserId();
-        return Ok(userDataService.Me(userId));
+        var response = await userDataService.Me(userId);
+        return Ok(response);
     }
 }

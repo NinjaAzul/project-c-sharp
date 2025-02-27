@@ -5,5 +5,5 @@ namespace Project_C_Sharp.Modules.Auth.Services.LoginUsers.Interfaces;
 
 public interface ILoginUsersService
 {
-    LoginResponseDto Login(LoginUsersRequestDto loginUsersRequestDto);
+    Task<LoginResponseDto> Login(LoginUsersRequestDto loginUsersRequestDto);
 }

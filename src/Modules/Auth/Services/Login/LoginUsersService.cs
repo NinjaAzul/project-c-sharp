@@ -1,5 +1,6 @@
 
 
+using Project_C_Sharp.Infra.DataBase.UnitOfWork;
 using Project_C_Sharp.Modules.Auth.Services.LoginUsers.Interfaces;
 using Project_C_Sharp.Modules.Auth.Services.Token;
 using Project_C_Sharp.Modules.Login.Dto.Response;
@@ -16,16 +17,18 @@ public class LoginUsersService : ILoginUsersService
 {
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public LoginUsersService(IUserRepository userRepository, ITokenService tokenService)
+    public LoginUsersService(IUserRepository userRepository, ITokenService tokenService, IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
+        _unitOfWork = unitOfWork;
     }
 
-    public LoginResponseDto Login(LoginUsersRequestDto loginUsersRequestDto)
+    public async Task<LoginResponseDto> Login(LoginUsersRequestDto loginUsersRequestDto)
     {
-        var user = _userRepository.GetByEmail(loginUsersRequestDto.Email);
+        var user = await _userRepository.GetByEmail(loginUsersRequestDto.Email);
 
         if (user == null)
         {
@@ -38,6 +41,8 @@ public class LoginUsersService : ILoginUsersService
         }
 
         var token = _tokenService.GenerateToken(user);
+
+        await _unitOfWork.CompleteAsync();
 
         return new LoginResponseDto
         {
